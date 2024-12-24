@@ -12,14 +12,17 @@ export default function Home() {
   });
 
   const [todoData, setTodoData] = useState([]);
-  const [loading, setLoading] = useState({ add: false, delete: null, complete: null });
+  const [loading, setLoading] = useState({ add: false, delete: null, complete: null, fetch: true });
 
   const fetchTodo = async () => {
+    setLoading((prev) => ({ ...prev, fetch: true }));
     try {
       const data = await axios.get("/api");
       setTodoData(data.data.todos);
     } catch (error) {
       toast.error("Something went wrong");
+    } finally {
+      setLoading((prev) => ({ ...prev, fetch: false }));
     }
   };
 
@@ -119,32 +122,36 @@ export default function Home() {
       </form>
 
       <div className="w-[90%] max-w-[800px] mt-10 mx-auto overflow-x-auto">
-        <table className="table-auto w-full border-collapse border border-gray-200">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border border-gray-300 px-4 py-2 text-left">ID</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Title</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Description</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Status</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {todoData.map((item, index) => (
-              <Todo
-                key={index}
-                id={index}
-                title={item.title}
-                description={item.description}
-                complete={item.isCompleted}
-                mongoId={item._id}
-                deleteTodo={deleteTodo}
-                completeTodo={completeTodo}
-                loading={loading}
-              />
-            ))}
-          </tbody>
-        </table>
+        {loading.fetch ? (
+          <div className="text-center py-4">Loading Todos...</div>
+        ) : (
+          <table className="table-auto w-full border-collapse border border-gray-200">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="border border-gray-300 px-4 py-2 text-left">ID</th>
+                <th className="border border-gray-300 px-4 py-2 text-left">Title</th>
+                <th className="border border-gray-300 px-4 py-2 text-left">Description</th>
+                <th className="border border-gray-300 px-4 py-2 text-left">Status</th>
+                <th className="border border-gray-300 px-4 py-2 text-left">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {todoData.map((item, index) => (
+                <Todo
+                  key={index}
+                  id={index}
+                  title={item.title}
+                  description={item.description}
+                  complete={item.isCompleted}
+                  mongoId={item._id}
+                  deleteTodo={deleteTodo}
+                  completeTodo={completeTodo}
+                  loading={loading}
+                />
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </>
   );
