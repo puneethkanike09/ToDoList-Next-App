@@ -15,6 +15,7 @@ export async function GET(request) {
         todos: todos
     })
 }
+
 export async function POST(request) {
 
     const { title, description } = await request.json()
@@ -28,4 +29,12 @@ export async function POST(request) {
         message: "TODO created"
     })
 }
+export async function DELETE(request) {
 
+    const mongoId = await request.nextUrl.searchParams.get("mongoId");
+    await TodoModel.findByIdAndDelete(mongoId)
+
+    return NextResponse.json({
+        message: "TODO deleted"
+    })
+}
