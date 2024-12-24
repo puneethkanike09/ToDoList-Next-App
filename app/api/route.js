@@ -38,3 +38,18 @@ export async function DELETE(request) {
         message: "TODO deleted"
     })
 }
+export async function PUT(request) {
+
+    const mongoId = await request.nextUrl.searchParams.get("mongoId");
+    await TodoModel.findByIdAndUpdate(mongoId, {
+        $set: {
+            isCompleted: true
+        }
+    })
+
+    return NextResponse.json({
+        message: "TODO completed"
+    })
+}
+
+
