@@ -10,8 +10,9 @@ const loadDB = async () => {
 loadDB()
 
 export async function GET(request) {
+    const todos = await TodoModel.find({});
     return NextResponse.json({
-        message: "Hello World with get method"
+        todos: todos
     })
 }
 export async function POST(request) {
