@@ -1,83 +1,86 @@
-"use client"
+"use client";
 
 import Todo from "@/components/Todo";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer, toast } from "react-toastify";
 
 export default function Home() {
-
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-  })
+  });
 
-  const [todoData, setTotoData] = useState([])
+  const [todoData, setTodoData] = useState([]);
+  const [loading, setLoading] = useState({ add: false, delete: null, complete: null });
 
-  const fetchToto = async () => {
+  const fetchTodo = async () => {
     try {
-      const data = await axios.get('/api')
-      setTotoData(data.data.todos)
+      const data = await axios.get("/api");
+      setTodoData(data.data.todos);
     } catch (error) {
-      toast.error("Something went wrong")
+      toast.error("Something went wrong");
     }
-  }
+  };
 
   const deleteTodo = async (id) => {
+    setLoading((prev) => ({ ...prev, delete: id }));
     try {
       const data = await axios.delete(`/api`, {
-        params: {
-          mongoId: id
-        }
-      })
-      toast.success(data.data.message)
-      fetchToto()
+        params: { mongoId: id },
+      });
+      toast.success(data.data.message);
+      fetchTodo();
     } catch (error) {
-      toast.error("Something went wrong")
+      toast.error("Something went wrong");
+    } finally {
+      setLoading((prev) => ({ ...prev, delete: null }));
     }
-  }
+  };
+
   const completeTodo = async (id) => {
+    setLoading((prev) => ({ ...prev, complete: id }));
     try {
       const data = await axios.put(`/api`, {}, {
-        params: {
-          mongoId: id
-        }
-      })
-      toast.success(data.data.message)
-      fetchToto()
+        params: { mongoId: id },
+      });
+      toast.success(data.data.message);
+      fetchTodo();
     } catch (error) {
-      toast.error("Something went wrong")
+      toast.error("Something went wrong");
+    } finally {
+      setLoading((prev) => ({ ...prev, complete: null }));
     }
-  }
+  };
 
   useEffect(() => {
-    fetchToto()
-  }, [])
-
+    fetchTodo();
+  }, []);
 
   const onChangeHandler = (e) => {
     const name = e.target.name;
     const value = e.target.value;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    console.log(formData)
-  }
+  };
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
+    setLoading((prev) => ({ ...prev, add: true }));
     try {
-      const data = await axios.post('/api', formData);
-
-      toast.success(data.data.message)
+      const data = await axios.post("/api", formData);
+      toast.success(data.data.message);
       setFormData({
         title: "",
-        description: ""
-      }
-      )
-      await fetchToto()
+        description: "",
+      });
+      fetchTodo();
     } catch (error) {
-      toast.error("Something went wrong")
+      toast.error("Something went wrong");
+    } finally {
+      setLoading((prev) => ({ ...prev, add: false }));
     }
-  }
+  };
+
   return (
     <>
       <ToastContainer
@@ -99,7 +102,8 @@ export default function Home() {
           type="text"
           name="title"
           placeholder="Enter Title"
-          className="px-3 py-2 border-2 w-full "
+          className="px-3 py-2 border-2 w-full"
+          required
         />
         <textarea
           onChange={onChangeHandler}
@@ -107,9 +111,10 @@ export default function Home() {
           name="description"
           placeholder="Enter Description"
           className="px-3 py-2 border-2 w-full"
+          required
         ></textarea>
-        <button type="submit" className="bg-orange-600 py-3 px-11 text-white">
-          Add Todo
+        <button type="submit" className="bg-orange-600 py-3 px-11 text-white" disabled={loading.add}>
+          {loading.add ? "Adding..." : "Add Todo"}
         </button>
       </form>
 
@@ -125,10 +130,19 @@ export default function Home() {
             </tr>
           </thead>
           <tbody>
-            {todoData.map((item, index) => {
-              return <Todo key={index} id={index} title={item.title} description={item.description} complete={item.isCompleted} mongoId={item._id} deleteTodo={deleteTodo} completeTodo={completeTodo} />;
-            })}
-
+            {todoData.map((item, index) => (
+              <Todo
+                key={index}
+                id={index}
+                title={item.title}
+                description={item.description}
+                complete={item.isCompleted}
+                mongoId={item._id}
+                deleteTodo={deleteTodo}
+                completeTodo={completeTodo}
+                loading={loading}
+              />
+            ))}
           </tbody>
         </table>
       </div>
